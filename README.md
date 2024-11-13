@@ -35,87 +35,58 @@ The address width for 4KB memory is 12 bits (2^12 = 4096).
 
 
 // rom_memory.v
-module rom_memory (
-    input wire clk,
-    input wire write_enable,   // Signal to enable write operation
-    input wire [11:0] address, // 12-bit address for 4KB memory
-    input wire [7:0] data_in,  // Data to write into ROM
-    output reg [7:0] data_out  // Data read from ROM
-);
+module rom_design(clk,rst,address,dataout); input clk,rst; input[2:0] address; output reg[3:0] dataout;
 
-    // Declare ROM with 4096 memory locations (each 8 bits wide)
-    reg [7:0] rom[0:4095];
+reg [3:0] rom_design[7:0];
 
-    always @(posedge clk) begin
-        if (write_enable) begin
-            // Write operation: Write data into the ROM at the given address
-            rom[address] <= data_in;
-        end
-        // Read operation: Read data from the ROM at the given address
-        data_out <= rom[address];
-    end
+initial begin rom_design[0]=4'd1; rom_design[1]=4'd2; rom_design[2]=4'd3; rom_design[4]=4'd10; rom_design[5]=4'd11; rom_design[6]=4'd12; rom_design[7]=4'd15;
+
+end
+
+always@(posedge clk) begin
+
+if(rst)
+
+dataout=4'd0;
+
+else
+
+dataout=rom_design[address];
+
+end
+
 endmodule
 
 
 Testbench for 4KB ROM Memory
 
-// rom_memory_tb.v
-`timescale 1ns / 1ps
+rom_design uut ( .clk(clk), .rst(rst), .address(address), .dataout(dataout) );
 
-module rom_memory_tb;
+initial begin clk = 1'b0; forever #5 clk = ~clk; end
 
-    // Inputs
-    reg clk;
-    reg write_enable;
-    reg [11:0] address;
-    reg [7:0] data_in;
+initial begin rst = 1'b1; address = 3'b000;
 
-    // Outputs
-    wire [7:0] data_out;
+// Reset assertion #10 rst = 1'b0;
 
-    // Instantiate the ROM module
-    rom_memory uut (
-        .clk(clk),
-        .write_enable(write_enable),
-        .address(address),
-        .data_in(data_in),
-        .data_out(data_out)
-    );
+// Test address 0 #10 address = 3'b000; #10 $display("Address: %d, Dataout: %d", address, dataout);
 
-    // Clock generation
-    always #5 clk = ~clk;  // Toggle clock every 5 ns
+// Test address 1 #10 address = 3'b001; #10 $display("Address: %d, Dataout: %d", address, dataout);
 
-    // Test procedure
-    initial begin
-        // Initialize inputs
-        clk = 0;
-        write_enable = 0;
-        address = 0;
-        data_in = 0;
+// Test address 2 #10 address = 3'b010; #10 $display("Address: %d, Dataout: %d", address, dataout);
 
-        // Write data into memory
-        #10 write_enable = 1; address = 12'd0; data_in = 8'hA5;  // Write 0xA5 at address 0
-        #10 write_enable = 1; address = 12'd1; data_in = 8'h5A;  // Write 0x5A at address 1
-        #10 write_enable = 1; address = 12'd2; data_in = 8'hFF;  // Write 0xFF at address 2
-        #10 write_enable = 1; address = 12'd3; data_in = 8'h00;  // Write 0x00 at address 3
+// Test address 4 #10 address = 3'b100; #10 $display("Address: %d, Dataout: %d", address, dataout);
 
-        // Disable write and start reading from memory
-        #10 write_enable = 0; address = 12'd0;
-        #10 address = 12'd1;
-        #10 address = 12'd2;
-        #10 address = 12'd3;
+// Test address 5 #10 address = 3'b101; #10 $display("Address: %d, Dataout: %d", address, dataout);
 
-        // Stop the simulation
-        #10 $stop;
-    end
+// Test address 6 #10 address = 3'b110; #10 $display("Address: %d, Dataout: %d", address, dataout);
 
-    // Monitor the values for verification
-    initial begin
-        $monitor("Time = %0t | Write Enable = %b | Address = %h | Data In = %h | Data Out = %h", 
-                 $time, write_enable, address, data_in, data_out);
-    end
+// Test address 7 #10 address = 3'b111; #10 $display("Address: %d, Dataout: %d", address, dataout);
+
+// Test reset #10 rst = 1'b1; #10 $display("Reset asserted, Dataout: %d", dataout); end
 
 endmodule
+
+output:![exp 6 hdl](https://github.com/user-attachments/assets/f0384682-1bc5-4834-a0f6-2c7c776eecc3)
 
 
 Conclusion
